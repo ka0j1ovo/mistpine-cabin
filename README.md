@@ -2,6 +2,9 @@
 
 一个可以直接双击打开的 **3D 森林小屋** 网页。整座森林、木屋、灯火、篝火与天气都在浏览器里实时渲染，所有材质、贴图、音效都由本地代码生成，无需联网。
 
+**在线试玩：** https://ka0j1ovo.github.io/mistpine-cabin/  
+**GitHub 仓库：** https://github.com/ka0j1ovo/mistpine-cabin
+
 ## 打开方式
 
 双击 `index.html` 即可。
