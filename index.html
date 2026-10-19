@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1411" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="雾杉小屋 · 一座藏在3D森林里的温暖木屋。拖拽环顾，点亮灯火，点燃篝火。" />
+  <title>雾杉小屋 · 森林里的 3D 夜晚</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1712'/%3E%3Cpath d='M32 8 16 34h10L14 48h36L38 34h10L32 8Z' fill='none' stroke='%23eec681' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="scene" aria-label="可交互的 3D 森林小屋。拖拽环顾，滚轮靠近，点击木门或篝火互动。" tabindex="0"></canvas>
+
+    <div class="atmosphere" aria-hidden="true">
+      <div class="sky-wash"></div>
+      <div class="grain"></div>
+      <div class="vignette"></div>
+      <div class="top-fade"></div>
+    </div>
+
+    <header class="masthead" aria-label="雾杉小屋">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M20 4 9 20h6.5L8 31h24L24.5 20H31L20 4Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M20 31v6" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div class="brand-copy">
+        <p class="eyebrow">MISTPINE FOREST · CABIN No.07</p>
+        <h1>雾杉小屋</h1>
+        <p class="tagline">把喧嚣留在林外，今晚住进月光里。</p>
+      </div>
+    </header>
+
+    <aside class="status-card" aria-label="森林状态">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span id="statusText">林间 · 蓝调时刻</span>
+      <span class="status-rule" aria-hidden="true"></span>
+      <span id="weatherStatus">微风 · 晴</span>
+    </aside>
+
+    <div class="scene-tools" aria-label="视图工具">
+      <button class="icon-btn" id="resetView" type="button" title="重置视角（R）" aria-label="重置视角">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 10a8 8 0 1 1 2.1 7.1M4 4v6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="fullscreen" type="button" title="全屏漫游" aria-label="全屏漫游">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <aside class="side-note" aria-hidden="true">
+      <span class="side-line"></span>
+      <p>拖拽环顾这片森林<br>敲敲门，或在篝火边坐一会儿</p>
+      <span class="side-index">01 / NIGHTFALL</span>
+    </aside>
+
+    <div class="whisper" id="whisper" role="status" aria-live="polite">
+      <span>门开了</span>
+      <p>炉子上煨着苹果茶，猫在窗边打盹。</p>
+    </div>
+
+    <div class="scene-caption" aria-hidden="true">
+      <span class="caption-dot"></span>
+      <span>19:42</span>
+      <span class="caption-sep"></span>
+      <span>萤火出没</span>
+    </div>
+
+    <nav class="dock" id="dock" aria-label="小屋互动控制">
+      <button class="ctrl is-on" type="button" data-action="lights" aria-pressed="true" title="切换灯火（L）">
+        <span class="ctrl-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9 17.5h6M9.8 20h4.4M8 14.2a6 6 0 1 1 8 0c-.9.8-1.4 1.5-1.4 2.3H9.4c0-.8-.5-1.5-1.4-2.3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="ctrl-meta">
+          <span class="ctrl-name">小屋灯火</span>
+          <span class="ctrl-state" data-state>暖光已亮</span>
+        </span>
+      </button>
+
+      <button class="ctrl" type="button" data-action="fire" aria-pressed="false" title="点燃篝火（F）">
+        <span class="ctrl-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12.4 3.4c.8 2.8-.7 4.2-1.8 5.4-1.2 1.3-2.3 2.8-1.7 5 .3.1.5-.2.6-.5.3-1 .9-1.7 1.7-2.3-.2 1.8.9 2.3 1.6 3.2.7.9 1.1 2.1.4 3.3 2.5-.4 4.2-2.6 4.2-5.1 0-2.3-1.2-4.1-2.7-5.4-.4 1-1.1 1.6-1.9 2 .5-2.1-.2-4.2-1.4-5.6Z" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5.5 20.5h13" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="ctrl-meta">
+          <span class="ctrl-name">篝火</span>
+          <span class="ctrl-state" data-state>余烬未燃</span>
+        </span>
+      </button>
+
+      <button class="ctrl" type="button" data-action="weather" aria-pressed="false" title="切换天气（W）">
+        <span class="ctrl-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7.2 17.5h9.4a3.3 3.3 0 0 0 .3-6.6 5.1 5.1 0 0 0-9.8-1.2 4 4 0 0 0 .1 7.8Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8.5 20v1M12 20v1M15.5 20v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="ctrl-meta">
+          <span class="ctrl-name">天气</span>
+          <span class="ctrl-state" data-state>晴 · 微风</span>
+        </span>
+      </button>
+
+      <button class="ctrl" type="button" data-action="door" aria-pressed="false" title="轻叩木门（D）">
+        <span class="ctrl-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5.5 20V5.5a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1V20M4 20h16M9.5 20v-5.5h5V20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="14.6" cy="11.2" r=".8" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="ctrl-meta">
+          <span class="ctrl-name">轻叩木门</span>
+          <span class="ctrl-state" data-state>门里亮着灯</span>
+        </span>
+      </button>
+
+      <button class="ctrl" type="button" data-action="sound" aria-pressed="false" title="开启环境声（M）">
+        <span class="ctrl-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="ctrl-meta">
+          <span class="ctrl-name">森林环境声</span>
+          <span class="ctrl-state" data-state>风与虫鸣</span>
+        </span>
+      </button>
+    </nav>
+
+    <div class="pointer-tip" id="pointerTip" aria-hidden="true"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="loading" id="loading">
+      <div class="loading-inner">
+        <div class="loading-tree" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none">
+            <path d="M32 5 15 31h9L11 46h42L40 31h9L32 5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+            <path d="M32 46v12" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <p>正在唤醒森林</p>
+        <div class="loading-bar"><span></span></div>
+      </div>
+    </div>
+
+    <div class="error-card" id="errorCard" hidden>
+      <p class="error-kicker">场景没有醒来</p>
+      <h2>这片森林需要 WebGL</h2>
+      <p>请换用较新的 Chrome / Edge / Safari 浏览器，或确认硬件加速已开启。</p>
+    </div>
+
+    <noscript>
+      <div class="error-card" style="display:block">
+        <p class="error-kicker">需要 JavaScript</p>
+        <h2>请开启 JavaScript</h2>
+        <p>开启后，这座 3D 森林小屋才会亮起灯。</p>
+      </div>
+    </noscript>
+  </main>
+
+  <script src="./vendor/three.min.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
